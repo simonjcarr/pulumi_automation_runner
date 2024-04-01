@@ -1,0 +1,12 @@
+{
+    "name": "hetzner_vm",
+    "main": "index.ts",
+    "devDependencies": {
+        "@types/node": "^18"
+    },
+    "dependencies": {
+        "@pulumi/hcloud": "^1.18.0",
+        "@pulumi/pulumi": "^3.0.0",
+        "mongoose": "^8.2.4"
+    }
+}
