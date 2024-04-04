@@ -36,9 +36,11 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+var dotenv = require("dotenv");
 var hcloud = require("@pulumi/hcloud");
 var automation_1 = require("@pulumi/pulumi/automation");
 var mongoose_1 = require("mongoose");
+dotenv.config();
 var testMongoose = function () { return __awaiter(void 0, void 0, void 0, function () {
     var MyModel;
     return __generator(this, function (_a) {
@@ -51,7 +53,15 @@ var Schema = mongoose_1.default.Schema;
 var UserSchema = new Schema({
     username: String,
     email: String,
-    password: String
+    password: String,
+});
+var memberSchema = new mongoose_1.default.Schema({
+    user: { type: mongoose_1.default.Schema.Types.ObjectId, ref: 'User' },
+    role: {
+        type: String,
+        enum: ['admin', 'member'],
+        default: 'member'
+    }
 });
 var projectSchema = new Schema({
     name: String,
@@ -59,6 +69,7 @@ var projectSchema = new Schema({
     cores: Number,
     memory: Number,
     disk: Number,
+    members: [memberSchema]
 });
 var vmSchema = new Schema({
     image: String,
@@ -151,7 +162,7 @@ var args = {
     program: pulumiProgram,
 };
 var stackUpdate = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var stackDown, stack, upRes, vmOutputs, error_1;
+    var stackDown, stack, hcloudToken, upRes, vmOutputs, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -161,7 +172,12 @@ var stackUpdate = function () { return __awaiter(void 0, void 0, void 0, functio
             case 1:
                 stack = _a.sent();
                 stack;
-                return [4 /*yield*/, stack.setConfig("hcloud:token", { value: "I49l0ecg1j1jiytCrcLdkCS91QvKRFjNtLi10CNGjcoUzomGqHI0QjRShsHLBkI5" })];
+                hcloudToken = process.env.HCLOUD_TOKEN;
+                console.log("***********************************************", hcloudToken);
+                if (!hcloudToken) {
+                    throw new Error('HCLOUD_TOKEN is not set in the environment variables');
+                }
+                return [4 /*yield*/, stack.setConfig("hcloud:token", { value: hcloudToken })];
             case 2:
                 _a.sent();
                 if (!(destroyList.length > 0)) return [3 /*break*/, 4];

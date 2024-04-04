@@ -1,9 +1,10 @@
+import * as dotenv from 'dotenv'; 
 import * as pulumi from "@pulumi/pulumi";
 import * as hcloud from "@pulumi/hcloud";
 import { InlineProgramArgs, LocalWorkspace } from "@pulumi/pulumi/automation";
-import mongoose from "mongoose";
+import mongoose, { mongo } from "mongoose";
 
-
+dotenv.config();
 
 const testMongoose = async () => {
     mongoose.connect('mongodb://localhost:27017/infrastructure', { authSource: "admin", user: "root", pass: "Passw0rd"})
@@ -14,8 +15,18 @@ const Schema = mongoose.Schema
 const UserSchema = new Schema({
     username: String,
     email: String,
-    password: String
+    password: String,
 })
+
+const memberSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    role: {
+      type: String,
+      enum: ['admin', 'member'],
+      default: 'member'
+    }
+  });
+
 
 const projectSchema = new Schema({
     name: String,
@@ -23,6 +34,7 @@ const projectSchema = new Schema({
     cores: Number,
     memory: Number,
     disk: Number,
+    members: [memberSchema]
 })
 
 const vmSchema = new Schema({
@@ -129,7 +141,13 @@ const stackUpdate = async () => {
         let stackDown = true
         let stack = await LocalWorkspace.createOrSelectStack(args);
         stack
-        await stack.setConfig("hcloud:token", { value: "I49l0ecg1j1jiytCrcLdkCS91QvKRFjNtLi10CNGjcoUzomGqHI0QjRShsHLBkI5"});
+        const hcloudToken = process.env.HCLOUD_TOKEN;
+        console.log("***********************************************", hcloudToken)
+
+        if (!hcloudToken) {
+            throw new Error('HCLOUD_TOKEN is not set in the environment variables');
+        }
+        await stack.setConfig("hcloud:token", { value: hcloudToken });
         if (destroyList.length > 0) {
             await stack.destroy({ onOutput: console.info, target: destroyList });
         } else {

@@ -7,6 +7,7 @@
     "dependencies": {
         "@pulumi/hcloud": "^1.18.0",
         "@pulumi/pulumi": "^3.0.0",
+        "dotenv": "^16.4.5",
         "mongoose": "^8.2.4"
     }
 }
